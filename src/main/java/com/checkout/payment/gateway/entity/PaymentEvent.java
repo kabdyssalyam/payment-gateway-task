@@ -1,9 +1,9 @@
-package com.checkout.payment.gateway.model;
+package com.checkout.payment.gateway.entity;
 
 import com.checkout.payment.gateway.enums.PaymentStatus;
 import java.util.UUID;
 
-public class GetPaymentResponse {
+public class PaymentEvent {
   private UUID id;
   private PaymentStatus status;
   private int cardNumberLastFour;
@@ -66,18 +66,5 @@ public class GetPaymentResponse {
 
   public void setAmount(int amount) {
     this.amount = amount;
-  }
-
-  @Override
-  public String toString() {
-    return "GetPaymentResponse{" +
-        "id=" + id +
-        ", status=" + status +
-        ", cardNumberLastFour=" + cardNumberLastFour +
-        ", expiryMonth=" + expiryMonth +
-        ", expiryYear=" + expiryYear +
-        ", currency='" + currency + '\'' +
-        ", amount=" + amount +
-        '}';
   }
 }

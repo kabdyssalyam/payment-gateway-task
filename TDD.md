@@ -8,8 +8,8 @@ sequenceDiagram
   participant db as DB
   participant bank as Acquirer 
 
-  client->>service: POST /api/payment
-  service->>db:  Saves payment data
+  client->>service: POST /api/paymentEvent
+  service->>db:  Saves paymentEvent data
   service->>bank: Send request
   bank-->>service: Response
   service->>db: Saves response result
@@ -17,28 +17,25 @@ sequenceDiagram
   
 ```
 
-## Retrieving payment data
+## Retrieving paymentEvent data
 ```mermaid
 sequenceDiagram
   actor client as Merchant
   participant service as PaymentGW
   participant db as DB
 
-  client->>service: GET /api/payment/:id
-  service->>db: Retrieve payment data
+  client->>service: GET /api/paymentEvent/:id
+  service->>db: Retrieve paymentEvent data
   db-->>service: Return data
-  service-->>client: Return payment data
+  service-->>client: Return paymentEvent data
  ``` 
   
 # API contract
 
 ## Process Payment
 ### ```POST /api/payments```
-Accept payment process request. Request saved in repository and passed to acquiring bank
-### Request Header
-```
-  Idempotency-key: "d12a1523-d3b2-45fa-9cbd-5d92532e4d05"
-```
+Accept paymentEvent process request. Request saved in repository and passed to acquiring bank
+
 ### Request Payload
 ```
 {
@@ -75,7 +72,7 @@ Payment processing error codes:
 
 ## Retrieve Payment Data
 ### ```GET /api/payments/:id```
-Retrieves payment details of processes payment by id
+Retrieves paymentEvent details of processes paymentEvent by id
 ### Response Payload
 ```
 {
@@ -92,4 +89,12 @@ Retrieves payment details of processes payment by id
 Payment processing error codes:
 ```
   404 - Not found
+```
+
+## Considerations and concerns
+
+### Payment processing requests are not idempotent
+Currently, process paymentEvent lacks idempotency, as this problem is out of the scope, we keep api simple.
+```
+  Idempotency-key: "d12a1523-d3b2-45fa-9cbd-5d92532e4d05"
 ```
