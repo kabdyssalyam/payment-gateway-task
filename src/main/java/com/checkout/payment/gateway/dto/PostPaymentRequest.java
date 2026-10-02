@@ -2,6 +2,7 @@ package com.checkout.payment.gateway.dto;
 
 import com.checkout.payment.gateway.validation.IsCardExpired;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -15,23 +16,25 @@ public record PostPaymentRequest(
   @Size(min = 14, max = 19)
   @Pattern(regexp = "^[0-9]+$")
   @JsonProperty("card_number")
-  int cardNumber,
+  String cardNumber, //int ?
 
   @NotNull
   @JsonProperty("expiry_month")
-  @Size(min = 1, max = 12)
-  int expiryMonth,
+  @Min(value = 1)
+  @Max(value = 12)
+  Integer expiryMonth,
 
   @NotNull
   @JsonProperty("expiry_year")
-  int expiryYear,
+  Integer expiryYear,
 
+  @Pattern(regexp = "^(USD|EUR|GBP)$")
   @NotNull
   String currency,
 
   @NotNull
   @Min(value = 1)
-  int amount,
+  Integer amount,
 
   @NotNull
   @Size(min = 3, max = 4)

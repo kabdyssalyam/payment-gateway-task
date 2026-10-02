@@ -15,7 +15,9 @@ public class CardExpiryValidator implements ConstraintValidator<IsCardExpired, P
   @Override
   public boolean isValid(PostPaymentRequest postPaymentRequest,
       ConstraintValidatorContext constraintValidatorContext) {
-    if (postPaymentRequest == null) {
+    if (postPaymentRequest == null || postPaymentRequest.expiryYear() == null
+        || postPaymentRequest.expiryMonth() == null || postPaymentRequest.expiryMonth() > 12
+        || postPaymentRequest.expiryMonth() < 1) {
       return true;
     }
 
