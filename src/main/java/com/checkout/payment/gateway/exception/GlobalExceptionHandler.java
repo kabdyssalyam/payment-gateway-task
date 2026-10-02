@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -15,8 +16,17 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(PaymentEventNotFoundException.class)
   public ResponseEntity<ErrorResponse> handleException(PaymentEventNotFoundException ex) {
-    LOG.error("Payment not found", ex);
-    return new ResponseEntity<>(new ErrorResponse(ex.getMessage()),
-        HttpStatus.NOT_FOUND);
+    LOG.warn("Payment not found", ex);
+    return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+    String message = String.format("Invalid UUID format '%s' for parameter '%s'",
+        ex.getValue(), ex.getName());
+
+    LOG.warn(message);
+
+    return new ResponseEntity<>(new ErrorResponse(message), HttpStatus.BAD_REQUEST);
   }
 }

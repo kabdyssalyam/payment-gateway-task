@@ -58,4 +58,13 @@ class PaymentGatewayControllerTest {
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.message").value(expectedMessage));
   }
+
+  @Test
+  void whenPaymentIdIsNotValidUuidThenBadRequestReturned() throws Exception {
+    String expectedMessage = "Invalid UUID format '1' for parameter 'id'";
+
+    mvc.perform(MockMvcRequestBuilders.get("/payment/1"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value(expectedMessage));
+  }
 }
