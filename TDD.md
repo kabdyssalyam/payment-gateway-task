@@ -44,12 +44,10 @@ Accept payment process request. Request saved in repository and passed to acquir
 {
   "amount": 1000,
   "currency": "EUR",
-  "card": {
-    "number": "4242424242424242",
-    "expiryMonth": 12,
-    "expiryYear": 2028,
-    "cvv": "333"
-  }
+  "card_number": "4242424242424242",
+  "expiry_month": 12,
+  "expiry_year": 2028,
+  "cvv": "333"
 }
 ```
 
@@ -74,8 +72,6 @@ Payment processing error codes:
 ```
   400 - Bad request. Request validation failed, malformed or missing fields
 ```
-
-#### NOTE: Left structure flat as it was initially, we don't know if there are any users of that API, so we don't break the contract
 
 ## Retrieve Payment Data
 ### ```GET /api/payments/:id```

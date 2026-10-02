@@ -1,26 +1,50 @@
 package com.checkout.payment.gateway.model;
 
+import com.checkout.payment.gateway.validation.IsCardExpired;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 
+
+@IsCardExpired
 public class PostPaymentRequest implements Serializable {
 
-  @JsonProperty("card_number_last_four")
-  private int cardNumberLastFour;
+  @NotNull
+  @Size(min = 14, max = 19)
+  @Pattern(regexp = "^[0-9]+$")
+  @JsonProperty("card_number")
+  private int cardNumber;
+
+  @NotNull
   @JsonProperty("expiry_month")
+  @Size(min = 1, max = 12)
   private int expiryMonth;
+
+  @NotNull
   @JsonProperty("expiry_year")
   private int expiryYear;
-  private String currency;
-  private int amount;
-  private int cvv;
 
-  public int getCardNumberLastFour() {
-    return cardNumberLastFour;
+  @NotNull
+  private String currency;
+
+  @NotNull
+  @Min(value = 1)
+  private int amount;
+
+  @NotNull
+  @Size(min = 3, max = 4)
+  @Pattern(regexp = "^[0-9]+$")
+  private String cvv;
+
+  public int getCardNumber() {
+    return cardNumber;
   }
 
-  public void setCardNumberLastFour(int cardNumberLastFour) {
-    this.cardNumberLastFour = cardNumberLastFour;
+  public void setCardNumber(int cardNumber) {
+    this.cardNumber = cardNumber;
   }
 
   public int getExpiryMonth() {
@@ -55,11 +79,11 @@ public class PostPaymentRequest implements Serializable {
     this.amount = amount;
   }
 
-  public int getCvv() {
+  public String getCvv() {
     return cvv;
   }
 
-  public void setCvv(int cvv) {
+  public void setCvv(String cvv) {
     this.cvv = cvv;
   }
 
@@ -71,7 +95,7 @@ public class PostPaymentRequest implements Serializable {
   @Override
   public String toString() {
     return "PostPaymentRequest{" +
-        "cardNumberLastFour=" + cardNumberLastFour +
+        "cardNumber=" + cardNumber +
         ", expiryMonth=" + expiryMonth +
         ", expiryYear=" + expiryYear +
         ", currency='" + currency + '\'' +
