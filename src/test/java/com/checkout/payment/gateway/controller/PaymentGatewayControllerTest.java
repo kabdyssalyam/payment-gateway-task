@@ -1,19 +1,25 @@
 package com.checkout.payment.gateway.controller;
 
-
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import com.checkout.payment.gateway.entity.PaymentEvent;
+import com.checkout.payment.gateway.dto.PostPaymentRequest;
 import com.checkout.payment.gateway.enums.PaymentStatus;
 import com.checkout.payment.gateway.dto.PostPaymentResponse;
-import com.checkout.payment.gateway.repository.PaymentsRepository;
+import com.checkout.payment.gateway.exception.BankUnavailableException;
+import com.checkout.payment.gateway.exception.BankValidationException;
+import com.checkout.payment.gateway.exception.PaymentEventNotFoundException;
+import com.checkout.payment.gateway.service.PaymentGatewayService;
+import com.checkout.payment.gateway.service.integration.BankClient;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,36 +33,177 @@ class PaymentGatewayControllerTest {
 
   @Autowired
   private MockMvc mvc;
-  @Autowired
-  PaymentsRepository paymentsRepository;
+  @MockBean
+  private BankClient bankClient;
+  @MockBean
+  private PaymentGatewayService paymentGatewayService;
+
+  @Test
+  void whenPaymentIsAuthorisedThenReturnOk() throws Exception {
+    PostPaymentRequest paymentRequest = new PostPaymentRequest(
+        "4242424242424242", 9, 2028, "EUR", 1000, "123"
+    );
+    UUID paymentId = UUID.randomUUID();
+    PostPaymentResponse paymentResponse = new PostPaymentResponse(
+        paymentId, PaymentStatus.AUTHORIZED, "4242", 9, 2028, "EUR", 1000
+    );
+    when(paymentGatewayService.processPayment(paymentRequest)).thenReturn(paymentResponse);
+
+    String request = """
+        {
+          "card_number": "4242424242424242",
+          "expiry_month": 9,
+          "expiry_year": 2028,
+          "currency": "EUR",
+          "amount": 1000,
+          "cvv": "123"
+        }
+        """;
+
+    mvc.perform(MockMvcRequestBuilders
+            .post("/payment")
+            .contentType("application/json")
+            .content(request))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(paymentId.toString()))
+        .andExpect(jsonPath("$.status").value("Authorized"))
+        .andExpect(jsonPath("$.cardNumberLastFour").value("4242"))
+        .andExpect(jsonPath("$.expiryMonth").value(9))
+        .andExpect(jsonPath("$.expiryYear").value(2028))
+        .andExpect(jsonPath("$.currency").value("EUR"))
+        .andExpect(jsonPath("$.amount").value(1000));
+
+    verify(paymentGatewayService).processPayment(paymentRequest);
+  }
+
+  @Test
+  void whenPaymentIsDeclinedThenReturnOk() throws Exception {
+    PostPaymentRequest paymentRequest = new PostPaymentRequest(
+        "4242424242424242", 9, 2028, "EUR", 1000, "123"
+    );
+    UUID paymentId = UUID.randomUUID();
+    PostPaymentResponse paymentResponse = new PostPaymentResponse(
+        paymentId, PaymentStatus.DECLINED, "4242", 9, 2028, "EUR", 1000
+    );
+    when(paymentGatewayService.processPayment(paymentRequest)).thenReturn(paymentResponse);
+
+    String request = """
+        {
+          "card_number": "4242424242424242",
+          "expiry_month": 9,
+          "expiry_year": 2028,
+          "currency": "EUR",
+          "amount": 1000,
+          "cvv": "123"
+        }
+        """;
+
+    mvc.perform(MockMvcRequestBuilders
+            .post("/payment")
+            .contentType("application/json")
+            .content(request))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(paymentId.toString()))
+        .andExpect(jsonPath("$.status").value("Declined"))
+        .andExpect(jsonPath("$.cardNumberLastFour").value("4242"))
+        .andExpect(jsonPath("$.expiryMonth").value(9))
+        .andExpect(jsonPath("$.expiryYear").value(2028))
+        .andExpect(jsonPath("$.currency").value("EUR"))
+        .andExpect(jsonPath("$.amount").value(1000));
+
+    verify(paymentGatewayService).processPayment(paymentRequest);
+  }
+
+  @Test
+  void whenBankValidationFailedThenReturnBadRequest() throws Exception {
+    PostPaymentRequest paymentRequest = new PostPaymentRequest(
+        "4242424242424242", 9, 2028, "EUR", 1000, "123"
+    );
+
+    when(paymentGatewayService.processPayment(paymentRequest)).thenThrow(new BankValidationException("Validation failed"));
+
+    String request = """
+        {
+          "card_number": "4242424242424242",
+          "expiry_month": 9,
+          "expiry_year": 2028,
+          "currency": "EUR",
+          "amount": 1000,
+          "cvv": "123"
+        }
+        """;
+
+    mvc.perform(MockMvcRequestBuilders
+            .post("/payment")
+            .contentType("application/json")
+            .content(request))
+        .andExpect(status().isBadRequest());
+
+    verify(paymentGatewayService).processPayment(paymentRequest);
+  }
+
+
+  @Test
+  void whenBankIsUnavailableThenReturnServiceUnavailable() throws Exception {
+    PostPaymentRequest paymentRequest = new PostPaymentRequest(
+        "4242424242424242", 9, 2028, "EUR", 1000, "123"
+    );
+    UUID paymentId = UUID.randomUUID();
+    when(paymentGatewayService.processPayment(paymentRequest)).thenThrow(new BankUnavailableException("Timeout"));
+
+    String request = """
+        {
+          "card_number": "4242424242424242",
+          "expiry_month": 9,
+          "expiry_year": 2028,
+          "currency": "EUR",
+          "amount": 1000,
+          "cvv": "123"
+        }
+        """;
+
+    mvc.perform(MockMvcRequestBuilders
+            .post("/payment")
+            .contentType("application/json")
+            .content(request))
+        .andExpect(status().isServiceUnavailable());
+
+    verify(paymentGatewayService).processPayment(paymentRequest);
+  }
 
   @Test
   void whenPaymentWithIdExistThenCorrectPaymentIsReturned() throws Exception {
-    PaymentEvent payment = new PaymentEvent();
-    payment.setId(UUID.randomUUID());
-    payment.setAmount(10);
-    payment.setCurrency("USD");
-    payment.setStatus(PaymentStatus.AUTHORIZED);
-    payment.setExpiryMonth(12);
-    payment.setExpiryYear(2024);
-    payment.setCardNumberLastFour("4321");
+    PostPaymentResponse paymentResponse = new PostPaymentResponse(
+        UUID.randomUUID(),
+        PaymentStatus.AUTHORIZED,
+        "4321",
+        12,
+        2024,
+        "USD",
+        10
+    );
 
-    paymentsRepository.add(payment);
+    when(paymentGatewayService.getPaymentById(paymentResponse.id())).thenReturn(paymentResponse);
 
-    mvc.perform(MockMvcRequestBuilders.get("/payment/" + payment.getId()))
+    mvc.perform(MockMvcRequestBuilders.get("/payment/" + paymentResponse.id()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.status").value(payment.getStatus().getName()))
-        .andExpect(jsonPath("$.cardNumberLastFour").value(payment.getCardNumberLastFour()))
-        .andExpect(jsonPath("$.expiryMonth").value(payment.getExpiryMonth()))
-        .andExpect(jsonPath("$.expiryYear").value(payment.getExpiryYear()))
-        .andExpect(jsonPath("$.currency").value(payment.getCurrency()))
-        .andExpect(jsonPath("$.amount").value(payment.getAmount()));
+        .andExpect(jsonPath("$.status").value(paymentResponse.status().getName()))
+        .andExpect(jsonPath("$.cardNumberLastFour").value(paymentResponse.cardNumberLastFour()))
+        .andExpect(jsonPath("$.expiryMonth").value(paymentResponse.expiryMonth()))
+        .andExpect(jsonPath("$.expiryYear").value(paymentResponse.expiryYear()))
+        .andExpect(jsonPath("$.currency").value(paymentResponse.currency()))
+        .andExpect(jsonPath("$.amount").value(paymentResponse.amount()));
   }
 
   @Test
   void whenPaymentWithIdDoesNotExistThen404IsReturned() throws Exception {
     UUID paymentEventUUID = UUID.randomUUID();
     String expectedMessage = String.format("Payment with id %s not found", paymentEventUUID);
+
+    when(paymentGatewayService.getPaymentById(paymentEventUUID))
+        .thenThrow(new PaymentEventNotFoundException(
+            String.format("Payment with id %s not found", paymentEventUUID))
+        );
 
     mvc.perform(MockMvcRequestBuilders.get("/payment/" + paymentEventUUID))
         .andExpect(status().isNotFound())

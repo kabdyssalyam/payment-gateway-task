@@ -29,4 +29,18 @@ public class GlobalExceptionHandler {
 
     return new ResponseEntity<>(new ErrorResponse(message), HttpStatus.BAD_REQUEST);
   }
+
+  @ExceptionHandler(BankValidationException.class)
+  public ResponseEntity<ErrorResponse> handleBankValidationException(BankValidationException ex) {
+    LOG.error("Invalid request for bank payment processing", ex);
+
+    return new ResponseEntity<>(new ErrorResponse("Bank failed to process payment"), HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(BankUnavailableException.class)
+  public ResponseEntity<ErrorResponse> handleBankUnavailableException(BankUnavailableException ex) {
+    LOG.error("Acquiring bank is unavailable", ex);
+
+    return new ResponseEntity<>(new ErrorResponse("Bank is unavailable"), HttpStatus.SERVICE_UNAVAILABLE);
+  }
 }
