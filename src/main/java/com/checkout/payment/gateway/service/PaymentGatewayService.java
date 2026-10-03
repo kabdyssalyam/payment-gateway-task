@@ -11,12 +11,13 @@ import com.checkout.payment.gateway.exception.BankValidationException;
 import com.checkout.payment.gateway.exception.PaymentEventNotFoundException;
 import com.checkout.payment.gateway.repository.PaymentsRepository;
 import java.util.UUID;
-import com.checkout.payment.gateway.service.integration.BankClient;
+import com.checkout.payment.gateway.service.integration.MountebankClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpServerErrorException.GatewayTimeout;
 import org.springframework.web.client.ResourceAccessException;
 
 @Service
@@ -26,9 +27,9 @@ public class PaymentGatewayService {
 
   private final PaymentsRepository paymentsRepository;
 
-  private final BankClient bankClient;
+  private final MountebankClient bankClient;
 
-  public PaymentGatewayService(PaymentsRepository paymentsRepository, BankClient bankClient) {
+  public PaymentGatewayService(PaymentsRepository paymentsRepository, MountebankClient bankClient) {
     this.paymentsRepository = paymentsRepository;
     this.bankClient = bankClient;
   }
@@ -70,21 +71,23 @@ public class PaymentGatewayService {
           paymentRequest.expiryYear()
       );
 
-      BankResponse response = bankClient.processPayment(new BankRequest(
+      BankRequest bankRequest = new BankRequest(
           paymentRequest.cardNumber(),
           formattedExpiry,
           paymentRequest.currency(),
           paymentRequest.amount(),
           paymentRequest.cvv()
-      ));
+      );
 
-      paymentEvent.setStatus(response.authorised() ? PaymentStatus.AUTHORIZED : PaymentStatus.DECLINED);
-      paymentEvent.setAuthoriationCode(response.authorisation_code());
+      BankResponse response = bankClient.processPayment(bankRequest);
+
+      paymentEvent.setStatus(response.authorized() ? PaymentStatus.AUTHORIZED : PaymentStatus.DECLINED);
+      paymentEvent.setAuthoriationCode(response.authorization_code());
     } catch (HttpClientErrorException.BadRequest e) {
       paymentEvent.setStatus(PaymentStatus.REJECTED);
 
       throw new BankValidationException(e.getMessage());
-    } catch (HttpServerErrorException.ServiceUnavailable | ResourceAccessException e) {
+    } catch (HttpServerErrorException.ServiceUnavailable | GatewayTimeout e) {
       paymentEvent.setStatus(PaymentStatus.REJECTED);
 
       throw new BankUnavailableException(e.getMessage());

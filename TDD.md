@@ -40,8 +40,8 @@ Accept paymentEvent process request. Request saved in repository and passed to a
 ```
 {
   "amount": 1000,
-  "currency": "EUR",
-  "card_number": "4242424242424242",
+  "currency": "GBP",
+  "card_number": "4242424242424247",
   "expiry_month": 12,
   "expiry_year": 2028,
   "cvv": "333"
@@ -52,13 +52,13 @@ Accept paymentEvent process request. Request saved in repository and passed to a
 
 ```
 {
-  "id": "f01e6594-d3c3-45fa-9cbc-5d92572e4d04",
-  "status": "Authorized",
-  "cardNumberLastFour": 4242,
-  "expiryMonth": 12,
-  "expiryYear": 2028,
-  "currency": "EUR",
-  "amount": 1000
+    "id": "228bf585-fda7-4bbc-84cc-d004cc203cc0",
+    "status": "Authorized",
+    "cardNumberLastFour": "4247",
+    "expiryMonth": 12,
+    "expiryYear": 2028,
+    "currency": "GBP",
+    "amount": 1000
 }
 ```
 Payment processing statuses with 201 status code:
@@ -76,13 +76,13 @@ Retrieves paymentEvent details of processes paymentEvent by id
 ### Response Payload
 ```
 {
-  "id": "f01e6594-d3c3-45fa-9cbc-5d92572e4d04",
-  "status": "Authorized",
-  "cardNumberLastFour": 4242,
-  "expiryMonth": 12,
-  "expiryYear": 2028,
-  "currency": "EUR",
-  "amount": 1000
+    "id": "228bf585-fda7-4bbc-84cc-d004cc203cc0",
+    "status": "Authorized",
+    "cardNumberLastFour": "4247",
+    "expiryMonth": 12,
+    "expiryYear": 2028,
+    "currency": "GBP",
+    "amount": 1000
 }
 ```
 
