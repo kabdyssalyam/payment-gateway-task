@@ -33,7 +33,7 @@ sequenceDiagram
 # API contract
 
 ## Process Payment
-### ```POST /api/payments```
+### ```POST /payments```
 Accept paymentEvent process request. Request saved in repository and passed to acquiring bank
 
 ### Request Payload
@@ -71,7 +71,7 @@ Payment processing error codes:
 ```
 
 ## Retrieve Payment Data
-### ```GET /api/payments/:id```
+### ```GET /payments/:id```
 Retrieves paymentEvent details of processes paymentEvent by id
 ### Response Payload
 ```

@@ -2,7 +2,6 @@ package com.checkout.payment.gateway.controller;
 
 import com.checkout.payment.gateway.dto.PostPaymentRequest;
 import com.checkout.payment.gateway.dto.PostPaymentResponse;
-import com.checkout.payment.gateway.enums.PaymentStatus;
 import com.checkout.payment.gateway.service.PaymentGatewayService;
 import java.util.UUID;
 import jakarta.validation.Valid;

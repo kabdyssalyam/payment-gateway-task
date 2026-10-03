@@ -39,7 +39,7 @@ class PaymentGatewayControllerTest {
     payment.setStatus(PaymentStatus.AUTHORIZED);
     payment.setExpiryMonth(12);
     payment.setExpiryYear(2024);
-    payment.setCardNumberLastFour(4321);
+    payment.setCardNumberLastFour("4321");
 
     paymentsRepository.add(payment);
 
@@ -195,6 +195,27 @@ class PaymentGatewayControllerTest {
                 "cvv": "%s"
             }
             """.formatted(cvv);
+
+    mvc.perform(MockMvcRequestBuilders
+        .post("/payment")
+        .contentType("application/json")
+        .content(request)
+    ).andExpect(status().isBadRequest());
+  }
+
+  //Possible flaky test
+  @Test
+  void whenCardIsExpiredThenReturnBadRequest() throws Exception {
+    String request = """
+            {
+                "card_number": "4242424242424242",
+                "expiry_month": 12,
+                "expiry_year": 2025,
+                "currency": "EUR",
+                "amount": 1000,
+                "cvv": "444"
+            }
+            """;
 
     mvc.perform(MockMvcRequestBuilders
         .post("/payment")

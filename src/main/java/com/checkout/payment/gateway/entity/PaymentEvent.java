@@ -6,11 +6,12 @@ import java.util.UUID;
 public class PaymentEvent {
   private UUID id;
   private PaymentStatus status;
-  private int cardNumberLastFour;
+  private String cardNumberLastFour;
   private int expiryMonth;
   private int expiryYear;
   private String currency;
   private int amount;
+  private String authoriationCode;
 
   public UUID getId() {
     return id;
@@ -28,11 +29,11 @@ public class PaymentEvent {
     this.status = status;
   }
 
-  public int getCardNumberLastFour() {
+  public String getCardNumberLastFour() {
     return cardNumberLastFour;
   }
 
-  public void setCardNumberLastFour(int cardNumberLastFour) {
+  public void setCardNumberLastFour(String cardNumberLastFour) {
     this.cardNumberLastFour = cardNumberLastFour;
   }
 
@@ -66,5 +67,13 @@ public class PaymentEvent {
 
   public void setAmount(int amount) {
     this.amount = amount;
+  }
+
+  public String getAuthoriationCode() {
+    return authoriationCode;
+  }
+
+  public void setAuthoriationCode(String authoriationCode) {
+    this.authoriationCode = authoriationCode;
   }
 }
