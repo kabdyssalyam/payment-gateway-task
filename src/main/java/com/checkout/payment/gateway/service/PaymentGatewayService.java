@@ -5,20 +5,21 @@ import com.checkout.payment.gateway.dto.BankResponse;
 import com.checkout.payment.gateway.dto.PostPaymentRequest;
 import com.checkout.payment.gateway.dto.PostPaymentResponse;
 import com.checkout.payment.gateway.entity.PaymentEvent;
+import com.checkout.payment.gateway.enums.BankClientType;
 import com.checkout.payment.gateway.enums.PaymentStatus;
 import com.checkout.payment.gateway.exception.BankUnavailableException;
 import com.checkout.payment.gateway.exception.BankValidationException;
 import com.checkout.payment.gateway.exception.PaymentEventNotFoundException;
 import com.checkout.payment.gateway.repository.PaymentsRepository;
 import java.util.UUID;
-import com.checkout.payment.gateway.service.integration.MountebankClient;
+import com.checkout.payment.gateway.service.integration.BankClient;
+import com.checkout.payment.gateway.service.integration.BankClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpServerErrorException.GatewayTimeout;
-import org.springframework.web.client.ResourceAccessException;
 
 @Service
 public class PaymentGatewayService {
@@ -27,11 +28,12 @@ public class PaymentGatewayService {
 
   private final PaymentsRepository paymentsRepository;
 
-  private final MountebankClient bankClient;
+  private final BankClientFactory clientFactory;
 
-  public PaymentGatewayService(PaymentsRepository paymentsRepository, MountebankClient bankClient) {
+  public PaymentGatewayService(PaymentsRepository paymentsRepository,
+      BankClientFactory clientFactory) {
     this.paymentsRepository = paymentsRepository;
-    this.bankClient = bankClient;
+    this.clientFactory = clientFactory;
   }
 
   public PostPaymentResponse getPaymentById(UUID id) {
@@ -78,6 +80,8 @@ public class PaymentGatewayService {
           paymentRequest.amount(),
           paymentRequest.cvv()
       );
+
+      BankClient bankClient = clientFactory.getClient(BankClientType.MOUNTEBANK);
 
       BankResponse response = bankClient.processPayment(bankRequest);
 

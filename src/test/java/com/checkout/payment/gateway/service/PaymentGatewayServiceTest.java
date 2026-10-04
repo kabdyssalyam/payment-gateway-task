@@ -5,10 +5,12 @@ import com.checkout.payment.gateway.dto.BankResponse;
 import com.checkout.payment.gateway.dto.PostPaymentRequest;
 import com.checkout.payment.gateway.dto.PostPaymentResponse;
 import com.checkout.payment.gateway.entity.PaymentEvent;
+import com.checkout.payment.gateway.enums.BankClientType;
 import com.checkout.payment.gateway.enums.PaymentStatus;
 import com.checkout.payment.gateway.exception.BankUnavailableException;
 import com.checkout.payment.gateway.exception.BankValidationException;
 import com.checkout.payment.gateway.repository.PaymentsRepository;
+import com.checkout.payment.gateway.service.integration.BankClientFactory;
 import com.checkout.payment.gateway.service.integration.MountebankClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +19,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.http.HttpStatus;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,6 +27,7 @@ import static org.mockito.Mockito.*;
 
 class PaymentGatewayServiceTest {
 
+  private BankClientFactory factory;
   private MountebankClient bankClient;
   private PaymentsRepository paymentsRepository;
   private PaymentGatewayService paymentService;
@@ -32,9 +36,13 @@ class PaymentGatewayServiceTest {
   void setUp() {
     bankClient = mock(MountebankClient.class);
 
+    when(bankClient.getType()).thenReturn(BankClientType.MOUNTEBANK);
+
+    factory = new BankClientFactory(List.of(bankClient));
+
     paymentsRepository = spy(new PaymentsRepository());
 
-    paymentService = new PaymentGatewayService(paymentsRepository, bankClient);
+    paymentService = new PaymentGatewayService(paymentsRepository, factory);
   }
 
   @Test
