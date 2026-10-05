@@ -130,6 +130,7 @@ Payment processing error codes:
 
 ### Payment processing requests are not idempotent
 Currently, process paymentEvent lacks idempotency, as this problem is out of the scope, we keep api simple.
+For further api revisit, suggesting to add Idempotency-key and build Idempotency storage.
 ```
   Idempotency-key: "d12a1523-d3b2-45fa-9cbd-5d92532e4d05"
 ```
