@@ -63,7 +63,7 @@ class PaymentGatewayServiceTest {
     expectedEvent.setExpiryMonth(9);
     expectedEvent.setExpiryYear(2028);
     expectedEvent.setCardNumberLastFour("4242");
-    expectedEvent.setAuthoriationCode("0bb07405-6d44-4b50-a14f-7ae0beff13ad");
+    expectedEvent.setAuthorizationCode("0bb07405-6d44-4b50-a14f-7ae0beff13ad");
 
     verify(paymentsRepository).add(refEq(expectedEvent, "id"));
   }

@@ -88,7 +88,8 @@ public class PaymentGatewayService {
       BankResponse response = bankClient.processPayment(bankRequest);
 
       paymentEvent.setStatus(response.authorized() ? PaymentStatus.AUTHORIZED : PaymentStatus.DECLINED);
-      paymentEvent.setAuthoriationCode(response.authorization_code());
+      paymentEvent.setAuthorizationCode(response.authorization_code());
+      paymentsRepository.add(paymentEvent);
     } catch (HttpClientErrorException.BadRequest e) {
       throw new BankValidationException(e.getMessage());
     } catch (HttpServerErrorException.ServiceUnavailable | GatewayTimeout |
@@ -97,8 +98,6 @@ public class PaymentGatewayService {
     } catch (Exception e) {
       throw new EventProcessingException(e.getMessage());
     }
-
-    paymentsRepository.add(paymentEvent);
 
     return new PostPaymentResponse(
         paymentEvent.getId(),

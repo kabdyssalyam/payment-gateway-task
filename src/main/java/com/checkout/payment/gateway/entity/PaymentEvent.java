@@ -11,7 +11,7 @@ public class PaymentEvent {
   private int expiryYear;
   private String currency;
   private int amount;
-  private String authoriationCode;
+  private String authorizationCode;
 
   public UUID getId() {
     return id;
@@ -69,11 +69,11 @@ public class PaymentEvent {
     this.amount = amount;
   }
 
-  public String getAuthoriationCode() {
-    return authoriationCode;
+  public String getAuthorizationCode() {
+    return authorizationCode;
   }
 
-  public void setAuthoriationCode(String authoriationCode) {
-    this.authoriationCode = authoriationCode;
+  public void setAuthorizationCode(String authorizationCode) {
+    this.authorizationCode = authorizationCode;
   }
 }
