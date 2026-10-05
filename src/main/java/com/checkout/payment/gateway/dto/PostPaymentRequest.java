@@ -16,7 +16,7 @@ public record PostPaymentRequest(
   @NotNull
   @Size(min = 14, max = 19)
   @Pattern(regexp = "^[0-9]+$")
-  @Schema(description = "14-19 digit card number", example = "4242424242424242")
+  @Schema(description = "14-19 digit card number", example = "4242424242424243")
   @JsonProperty("card_number")
   String cardNumber,
 

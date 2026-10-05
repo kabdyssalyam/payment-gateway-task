@@ -1,4 +1,11 @@
-# General flow overview
+### Table of Contents
+- [General flow overview](#general-flow-overview)
+- [How to run application](#how-to-run-)
+- [Running Integration Tests](#integration-tests)
+- [API contract](#api-contract)
+- [Considerations and concerns](#considerations-and-concerns)
+
+## General flow overview
 
 ## Payment Processing
 ```mermaid
@@ -30,8 +37,32 @@ sequenceDiagram
   service-->>client: Return paymentEvent data
  ``` 
   
-# API contract
+# How to run 
 
+## Local setup
+```
+  // Start Payment GW app
+  ./gradlew bootRun 
+  OR
+  ./gradlew clean build
+  java -jar .\build\libs\payment-gateway-challenge-java-0.0.1-SNAPSHOT.jar
+  
+  // Start montebank stub service
+  docker compose up -d
+```
+
+## Integration tests
+```
+  Integration tests are not part of the build. They run separately.
+  Integration tests are placed under test/java/com/checkout/payment/gateway/integration
+  
+  // Start montebank stub service
+  docker compose up -d
+  
+  //Run integration tests
+  ./gradlew integrationTest
+```
+## API contract
 ## Process Payment
 ### ```POST /payments```
 Accept paymentEvent process request. Request saved in repository and passed to acquiring bank
@@ -90,6 +121,8 @@ Payment processing error codes:
 ```
   404 - Not found
 ```
+
+### For detailed api doc see: http://localhost:8090/swagger-ui
 
 ## Considerations and concerns
 

@@ -9,6 +9,7 @@ import com.checkout.payment.gateway.enums.BankClientType;
 import com.checkout.payment.gateway.enums.PaymentStatus;
 import com.checkout.payment.gateway.exception.BankUnavailableException;
 import com.checkout.payment.gateway.exception.BankValidationException;
+import com.checkout.payment.gateway.exception.EventProcessingException;
 import com.checkout.payment.gateway.exception.PaymentEventNotFoundException;
 import com.checkout.payment.gateway.repository.PaymentsRepository;
 import java.util.UUID;
@@ -94,7 +95,7 @@ public class PaymentGatewayService {
              ResourceAccessException e) {
       throw new BankUnavailableException(e.getMessage());
     } catch (Exception e) {
-      throw new RuntimeException("Server error");
+      throw new EventProcessingException(e.getMessage());
     }
 
     paymentsRepository.add(paymentEvent);

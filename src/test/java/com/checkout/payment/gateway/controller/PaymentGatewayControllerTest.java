@@ -10,6 +10,7 @@ import com.checkout.payment.gateway.enums.PaymentStatus;
 import com.checkout.payment.gateway.dto.PostPaymentResponse;
 import com.checkout.payment.gateway.exception.BankUnavailableException;
 import com.checkout.payment.gateway.exception.BankValidationException;
+import com.checkout.payment.gateway.exception.EventProcessingException;
 import com.checkout.payment.gateway.exception.PaymentEventNotFoundException;
 import com.checkout.payment.gateway.service.PaymentGatewayService;
 import com.checkout.payment.gateway.service.integration.BankClient;
@@ -150,7 +151,6 @@ class PaymentGatewayControllerTest {
     PostPaymentRequest paymentRequest = new PostPaymentRequest(
         "4242424242424242", 9, 2028, "EUR", 1000, "123"
     );
-    UUID paymentId = UUID.randomUUID();
     when(paymentGatewayService.processPayment(paymentRequest)).thenThrow(
         new BankUnavailableException("Timeout"));
 
@@ -170,6 +170,35 @@ class PaymentGatewayControllerTest {
             .contentType("application/json")
             .content(request))
         .andExpect(status().isServiceUnavailable())
+        .andExpect(jsonPath("$.status").value("Rejected"));
+
+    verify(paymentGatewayService).processPayment(paymentRequest);
+  }
+
+  @Test
+  void whenUnknownPaymentProcessingErrorThenReturnInternalServerError() throws Exception {
+    PostPaymentRequest paymentRequest = new PostPaymentRequest(
+        "4242424242424242", 9, 2028, "EUR", 1000, "123"
+    );
+    when(paymentGatewayService.processPayment(paymentRequest)).thenThrow(
+        new EventProcessingException("Unknown error"));
+
+    String request = """
+        {
+          "card_number": "4242424242424242",
+          "expiry_month": 9,
+          "expiry_year": 2028,
+          "currency": "EUR",
+          "amount": 1000,
+          "cvv": "123"
+        }
+        """;
+
+    mvc.perform(MockMvcRequestBuilders
+            .post("/payment")
+            .contentType("application/json")
+            .content(request))
+        .andExpect(status().isInternalServerError())
         .andExpect(jsonPath("$.status").value("Rejected"));
 
     verify(paymentGatewayService).processPayment(paymentRequest);
