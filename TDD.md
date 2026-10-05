@@ -15,9 +15,9 @@ sequenceDiagram
   participant db as DB
   participant bank as Acquirer 
 
-  client->>service: POST /api/paymentEvent
+  client->>service: POST /payment
   service->>db:  Saves paymentEvent data
-  service->>bank: Send request
+  service->>bank: POST /payments 
   bank-->>service: Response
   service->>db: Saves response result
   service-->>client: Payment response
@@ -31,7 +31,7 @@ sequenceDiagram
   participant service as PaymentGW
   participant db as DB
 
-  client->>service: GET /api/paymentEvent/:id
+  client->>service: GET /payment/:id
   service->>db: Retrieve paymentEvent data
   db-->>service: Return data
   service-->>client: Return paymentEvent data
@@ -53,7 +53,7 @@ sequenceDiagram
 
 ## Integration tests
 ```
-  Integration tests are not part of the build. They run separately.
+  Build is independant of integrationTests. Runs separately.
   Integration tests are placed under test/java/com/checkout/payment/gateway/integration
   
   // Start montebank stub service
@@ -79,7 +79,7 @@ Accept paymentEvent process request. Request saved in repository and passed to a
 }
 ```
 
-### Response Payload (201 TODO double check)
+### Response Payload (200)
 
 ```
 {
@@ -92,13 +92,15 @@ Accept paymentEvent process request. Request saved in repository and passed to a
     "amount": 1000
 }
 ```
-Payment processing statuses with 201 status code:
+Payment processing statuses with 200 status code:
 ```
-    Authorised/Declined/Rejected
+    Authorised/Declined
 ```
 Payment processing error codes:
 ```
-  400 - Bad request. Request validation failed, malformed or missing fields
+  400 - Bad request. Request validation failed, malformed or missing fields. Status Rejected
+  503 - Upstream banking service is unavailable or timed out. Status Rejected
+  500 - Unexpected server error. Status Rejected
 ```
 
 ## Retrieve Payment Data
