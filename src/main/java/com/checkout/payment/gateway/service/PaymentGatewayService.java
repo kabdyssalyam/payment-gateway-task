@@ -39,7 +39,7 @@ public class PaymentGatewayService {
   }
 
   public PostPaymentResponse getPaymentById(UUID id) {
-    LOG.debug("Requesting access to to payment with ID {}", id);
+    LOG.info("Requesting to payment with ID {}", id);
 
     return paymentsRepository.get(id)
         .map(paymentEvent -> new PostPaymentResponse(
@@ -59,6 +59,13 @@ public class PaymentGatewayService {
   public PostPaymentResponse processPayment(PostPaymentRequest paymentRequest) {
     String cardNumber = paymentRequest.cardNumber();
     String lastFour = cardNumber.substring(cardNumber.length() - 4);
+    String formattedExpiry = String.format("%02d/%d",
+        paymentRequest.expiryMonth(),
+        paymentRequest.expiryYear()
+    );
+
+    LOG.info("Processing payment amount={} currency={}, card=****{}, expiration={}",
+        paymentRequest.amount(), paymentRequest.currency(), lastFour, formattedExpiry);
 
     PaymentEvent paymentEvent = new PaymentEvent();
     paymentEvent.setId(UUID.randomUUID());
@@ -70,11 +77,6 @@ public class PaymentGatewayService {
     paymentEvent.setCardNumberLastFour(lastFour);
 
     try {
-      String formattedExpiry = String.format("%02d/%d",
-          paymentRequest.expiryMonth(),
-          paymentRequest.expiryYear()
-      );
-
       BankRequest bankRequest = new BankRequest(
           paymentRequest.cardNumber(),
           formattedExpiry,
@@ -99,6 +101,7 @@ public class PaymentGatewayService {
       throw new EventProcessingException(e.getMessage());
     }
 
+    LOG.info("Payment event processed with id {} and status {}", paymentEvent.getId(), paymentEvent.getStatus());
     return new PostPaymentResponse(
         paymentEvent.getId(),
         paymentEvent.getStatus(),
