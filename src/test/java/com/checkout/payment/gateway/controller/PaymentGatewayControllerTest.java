@@ -120,7 +120,8 @@ class PaymentGatewayControllerTest {
         "4242424242424242", 9, 2028, "EUR", 1000, "123"
     );
 
-    when(paymentGatewayService.processPayment(paymentRequest)).thenThrow(new BankValidationException("Validation failed"));
+    when(paymentGatewayService.processPayment(paymentRequest)).thenThrow(
+        new BankValidationException("Validation failed"));
 
     String request = """
         {
@@ -137,7 +138,8 @@ class PaymentGatewayControllerTest {
             .post("/payment")
             .contentType("application/json")
             .content(request))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value("Rejected"));
 
     verify(paymentGatewayService).processPayment(paymentRequest);
   }
@@ -149,7 +151,8 @@ class PaymentGatewayControllerTest {
         "4242424242424242", 9, 2028, "EUR", 1000, "123"
     );
     UUID paymentId = UUID.randomUUID();
-    when(paymentGatewayService.processPayment(paymentRequest)).thenThrow(new BankUnavailableException("Timeout"));
+    when(paymentGatewayService.processPayment(paymentRequest)).thenThrow(
+        new BankUnavailableException("Timeout"));
 
     String request = """
         {
@@ -166,7 +169,8 @@ class PaymentGatewayControllerTest {
             .post("/payment")
             .contentType("application/json")
             .content(request))
-        .andExpect(status().isServiceUnavailable());
+        .andExpect(status().isServiceUnavailable())
+        .andExpect(jsonPath("$.status").value("Rejected"));
 
     verify(paymentGatewayService).processPayment(paymentRequest);
   }
@@ -224,21 +228,22 @@ class PaymentGatewayControllerTest {
   @ValueSource(strings = {"111", "1234567891012131415161718", "letters"})
   void whenCardNumberIsNotValidThenBadRequestReturned(String invalidCardNumber) throws Exception {
     String request = """
-            {
-                "card_number": "%s",
-                "expiry_month": 12,
-                "expiry_year": 2028,
-                "currency": "EUR",
-                "amount": 100,
-                "cvv": "123"
-            }
-            """.formatted(invalidCardNumber);
+        {
+            "card_number": "%s",
+            "expiry_month": 12,
+            "expiry_year": 2028,
+            "currency": "EUR",
+            "amount": 100,
+            "cvv": "123"
+        }
+        """.formatted(invalidCardNumber);
 
     mvc.perform(MockMvcRequestBuilders
-        .post("/payment")
-        .contentType("application/json")
-        .content(request)
-    ).andExpect(status().isBadRequest());
+            .post("/payment")
+            .contentType("application/json")
+            .content(request)
+        ).andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value("Rejected"));
   }
 
   @ParameterizedTest
@@ -246,42 +251,44 @@ class PaymentGatewayControllerTest {
   @ValueSource(ints = {0, 13})
   void whenExpiryMonthIsNotValidThenBadRequestReturned(Integer invalidMonth) throws Exception {
     String request = """
-            {
-                "card_number": "4242424242424242",
-                "expiry_month": %s,
-                "expiry_year": 2028,
-                "currency": "EUR",
-                "amount": 100,
-                "cvv": "123"
-            }
-            """.formatted(invalidMonth);
+        {
+            "card_number": "4242424242424242",
+            "expiry_month": %s,
+            "expiry_year": 2028,
+            "currency": "EUR",
+            "amount": 100,
+            "cvv": "123"
+        }
+        """.formatted(invalidMonth);
 
     mvc.perform(MockMvcRequestBuilders
-        .post("/payment")
-        .contentType("application/json")
-        .content(request)
+            .post("/payment")
+            .contentType("application/json")
+            .content(request)
 
-    ).andExpect(status().isBadRequest());
+        ).andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value("Rejected"));
   }
 
   @Test
   void whenExpiryYearIsNotValidThenBadRequestReturned() throws Exception {
     String request = """
-            {
-                "card_number": "4242424242424242",
-                "expiry_month": 10,
-                "currency": "EUR",
-                "amount": 100,
-                "cvv": "123"
-            }
-            """;
+        {
+            "card_number": "4242424242424242",
+            "expiry_month": 10,
+            "currency": "EUR",
+            "amount": 100,
+            "cvv": "123"
+        }
+        """;
 
     mvc.perform(MockMvcRequestBuilders
-        .post("/payment")
-        .contentType("application/json")
-        .content(request)
+            .post("/payment")
+            .contentType("application/json")
+            .content(request)
 
-    ).andExpect(status().isBadRequest());
+        ).andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value("Rejected"));
   }
 
   @ParameterizedTest
@@ -289,21 +296,22 @@ class PaymentGatewayControllerTest {
   @ValueSource(strings = {"AAA", "A", "AAAA"})
   void whenCurrencyIsNotValidThenBadRequestReturned(String invalidCurrency) throws Exception {
     String request = """
-            {
-                "card_number": "4242424242424242",
-                "expiry_month": 12,
-                "expiry_year": 2028,
-                "currency": "%s",
-                "amount": 100,
-                "cvv": "123"
-            }
-            """.formatted(invalidCurrency);
+        {
+            "card_number": "4242424242424242",
+            "expiry_month": 12,
+            "expiry_year": 2028,
+            "currency": "%s",
+            "amount": 100,
+            "cvv": "123"
+        }
+        """.formatted(invalidCurrency);
 
     mvc.perform(MockMvcRequestBuilders
-        .post("/payment")
-        .contentType("application/json")
-        .content(request)
-    ).andExpect(status().isBadRequest());
+            .post("/payment")
+            .contentType("application/json")
+            .content(request)
+        ).andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value("Rejected"));
   }
 
   @ParameterizedTest
@@ -311,21 +319,22 @@ class PaymentGatewayControllerTest {
   @ValueSource(ints = {-1, 0})
   void whenCurrencyIsNotValidThenBadRequestReturned(Integer invalidAmount) throws Exception {
     String request = """
-            {
-                "card_number": "4242424242424242",
-                "expiry_month": 12,
-                "expiry_year": 2028,
-                "currency": "EUR",
-                "amount": %s,
-                "cvv": "123"
-            }
-            """.formatted(invalidAmount);
+        {
+            "card_number": "4242424242424242",
+            "expiry_month": 12,
+            "expiry_year": 2028,
+            "currency": "EUR",
+            "amount": %s,
+            "cvv": "123"
+        }
+        """.formatted(invalidAmount);
 
     mvc.perform(MockMvcRequestBuilders
-        .post("/payment")
-        .contentType("application/json")
-        .content(request)
-    ).andExpect(status().isBadRequest());
+            .post("/payment")
+            .contentType("application/json")
+            .content(request)
+        ).andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value("Rejected"));
   }
 
   @ParameterizedTest
@@ -333,41 +342,43 @@ class PaymentGatewayControllerTest {
   @ValueSource(strings = {"11", "11111", "1a1"})
   void whenCvvIsNotValidThenBadRequestReturned(String cvv) throws Exception {
     String request = """
-            {
-                "card_number": "4242424242424242",
-                "expiry_month": 12,
-                "expiry_year": 2028,
-                "currency": "EUR",
-                "amount": 1000,
-                "cvv": "%s"
-            }
-            """.formatted(cvv);
+        {
+            "card_number": "4242424242424242",
+            "expiry_month": 12,
+            "expiry_year": 2028,
+            "currency": "EUR",
+            "amount": 1000,
+            "cvv": "%s"
+        }
+        """.formatted(cvv);
 
     mvc.perform(MockMvcRequestBuilders
-        .post("/payment")
-        .contentType("application/json")
-        .content(request)
-    ).andExpect(status().isBadRequest());
+            .post("/payment")
+            .contentType("application/json")
+            .content(request)
+        ).andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value("Rejected"));
   }
 
   //Possible flaky test
   @Test
   void whenCardIsExpiredThenReturnBadRequest() throws Exception {
     String request = """
-            {
-                "card_number": "4242424242424242",
-                "expiry_month": 12,
-                "expiry_year": 2025,
-                "currency": "EUR",
-                "amount": 1000,
-                "cvv": "444"
-            }
-            """;
+        {
+            "card_number": "4242424242424242",
+            "expiry_month": 12,
+            "expiry_year": 2025,
+            "currency": "EUR",
+            "amount": 1000,
+            "cvv": "444"
+        }
+        """;
 
     mvc.perform(MockMvcRequestBuilders
-        .post("/payment")
-        .contentType("application/json")
-        .content(request)
-    ).andExpect(status().isBadRequest());
+            .post("/payment")
+            .contentType("application/json")
+            .content(request)
+        ).andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value("Rejected"));
   }
 }

@@ -112,7 +112,7 @@ class PaymentGatewayServiceTest {
     expectedEvent.setExpiryYear(2028);
     expectedEvent.setCardNumberLastFour("4242");
 
-    verify(paymentsRepository).add(refEq(expectedEvent, "id"));
+    verify(paymentsRepository, never()).add(any());
   }
 
   @Test
@@ -138,7 +138,7 @@ class PaymentGatewayServiceTest {
     expectedEvent.setExpiryYear(2028);
     expectedEvent.setCardNumberLastFour("4242");
 
-    verify(paymentsRepository).add(refEq(expectedEvent, "id"));
+    verify(paymentsRepository, never()).add(any());
   }
 
   @Test
@@ -162,7 +162,7 @@ class PaymentGatewayServiceTest {
     expectedEvent.setExpiryYear(2028);
     expectedEvent.setCardNumberLastFour("4242");
 
-    verify(paymentsRepository).add(refEq(expectedEvent, "id"));
+    verify(paymentsRepository, never()).add(any());
   }
 
   @Test

@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpServerErrorException.GatewayTimeout;
+import org.springframework.web.client.ResourceAccessException;
 
 @Service
 public class PaymentGatewayService {
@@ -88,16 +89,15 @@ public class PaymentGatewayService {
       paymentEvent.setStatus(response.authorized() ? PaymentStatus.AUTHORIZED : PaymentStatus.DECLINED);
       paymentEvent.setAuthoriationCode(response.authorization_code());
     } catch (HttpClientErrorException.BadRequest e) {
-      paymentEvent.setStatus(PaymentStatus.REJECTED);
-
       throw new BankValidationException(e.getMessage());
-    } catch (HttpServerErrorException.ServiceUnavailable | GatewayTimeout e) {
-      paymentEvent.setStatus(PaymentStatus.REJECTED);
-
+    } catch (HttpServerErrorException.ServiceUnavailable | GatewayTimeout |
+             ResourceAccessException e) {
       throw new BankUnavailableException(e.getMessage());
-    } finally {
-      paymentsRepository.add(paymentEvent);
+    } catch (Exception e) {
+      throw new RuntimeException("Server error");
     }
+
+    paymentsRepository.add(paymentEvent);
 
     return new PostPaymentResponse(
         paymentEvent.getId(),
