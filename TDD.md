@@ -64,7 +64,7 @@ sequenceDiagram
 ```
 ## API contract
 ## Process Payment
-### ```POST /payments```
+### ```POST /payment```
 Accept paymentEvent process request. Request saved in repository and passed to acquiring bank
 
 ### Request Payload
@@ -104,7 +104,7 @@ Payment processing error codes:
 ```
 
 ## Retrieve Payment Data
-### ```GET /payments/:id```
+### ```GET /payment/:id```
 Retrieves paymentEvent details of processes paymentEvent by id
 ### Response Payload
 ```
@@ -124,7 +124,7 @@ Payment processing error codes:
   404 - Not found
 ```
 
-### For detailed api doc see: http://localhost:8090/swagger-ui
+### For detailed api doc see: http://localhost:8090/swagger-ui/index.html
 
 ## Considerations and concerns
 
